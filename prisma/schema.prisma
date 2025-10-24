@@ -1,0 +1,188 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  username  String   @unique
+  password  String
+  firstName String
+  lastName  String
+  role      UserRole @default(JUGADOR)
+  age       Int?
+  position  PlayerPosition?
+  phone     String?
+  jerseyNumber Int?
+  license   String?
+  experienceYears Int?
+  specialization String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  trainingsAsCoach Training[] @relation("CoachTrainings")
+  trainingParticipants TrainingParticipant[]
+  trainingResults TrainingResult[]
+  sentMessages Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+  events    Event[]
+  stats     PlayerStat[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  JUGADOR
+  ENTRENADOR
+  ADMINISTRADOR
+}
+
+enum PlayerPosition {
+  PORTERO
+  DEFENSA
+  MEDIOCAMPO
+  DELANTERO
+}
+
+model Training {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  type        TrainingType
+  date        DateTime
+  duration    Int
+  coachId     Int
+  location    String?
+  status      TrainingStatus @default(PROGRAMADO)
+
+  coach       User   @relation("CoachTrainings", fields: [coachId], references: [id])
+  participants TrainingParticipant[]
+  results     TrainingResult[]
+
+  @@map("trainings")
+}
+
+enum TrainingType {
+  FISICO
+  TACTICO
+  TECNICO
+  PRACTICA
+}
+
+enum TrainingStatus {
+  PROGRAMADO
+  CONFIRMADO
+  COMPLETADO
+  CANCELADO
+}
+
+model TrainingParticipant {
+  id          Int  @id @default(autoincrement())
+  trainingId  Int
+  playerId    Int
+  confirmed   Boolean @default(false)
+  attended    Boolean?
+
+  training    Training @relation(fields: [trainingId], references: [id])
+  player      User     @relation(fields: [playerId], references: [id])
+
+  @@unique([trainingId, playerId])
+  @@map("training_participants")
+}
+
+model TrainingResult {
+  id          Int     @id @default(autoincrement())
+  trainingId  Int
+  playerId    Int
+  endurance   Int?
+  technique   Int?
+  attitude    Int?
+  notes       String?
+
+  training    Training @relation(fields: [trainingId], references: [id])
+  player      User     @relation(fields: [playerId], references: [id])
+
+  @@unique([trainingId, playerId])
+  @@map("training_results")
+}
+
+model Event {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  type        EventType
+  date        DateTime
+  time        String?
+  location    String?
+  createdById Int
+
+  createdBy   User @relation(fields: [createdById], references: [id])
+
+  @@map("events")
+}
+
+enum EventType {
+  ENTRENAMIENTO
+  PARTIDO
+  REUNION
+  VACACIONES
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  content   String
+  type      MessageType @default(GENERAL)
+  senderId  Int
+  receiverId Int?
+  createdAt DateTime @default(now())
+
+  sender   User @relation("SentMessages", fields: [senderId], references: [id])
+  receiver User? @relation("ReceivedMessages", fields: [receiverId], references: [id])
+
+  @@map("messages")
+}
+
+enum MessageType {
+  GENERAL
+  PRIVADO
+}
+
+model PlayerStat {
+  id        Int @id @default(autoincrement())
+  playerId  Int
+  matchesPlayed Int @default(0)
+  goals     Int @default(0)
+  assists   Int @default(0)
+  year      Int
+  month     Int
+
+  player    User @relation(fields: [playerId], references: [id])
+
+  @@unique([playerId, year, month])
+  @@map("player_stats")
+}
+
+model Tournament {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  status      TournamentStatus @default(ACTIVO)
+  teamsCount  Int
+
+  @@map("tournaments")
+}
+
+enum TournamentStatus {
+  ACTIVO
+  PROGRAMADO
+  FINALIZADO
+}
