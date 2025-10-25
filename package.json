@@ -6,7 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
 "scripts": {
-  "prestart": "npm run build && npx prisma generate",
+  "prebuild": "npx prisma generate",
   "build": "nest build",
   "start": "node dist/main.js",
   "start:dev": "nest start --watch",
