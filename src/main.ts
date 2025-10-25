@@ -6,14 +6,13 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // CORS: SOLO TU FRONTEND (GitHub Pages)
-  app.enableCors({
-    origin: [
-      'https://heber1709.github.io',           // CAMBIA ESTO
-      'https://heber1709.github.io/orbifit-frontend', // O ESTO
-      'http://localhost:3000'                 // Para desarrollo local
-    ],
-    credentials: true,
-  });
+app.enableCors({
+  origin: [
+    'https://heber1709.github.io/Orbifit-frontend', // frontend en GitHub Pages
+    'http://localhost:3000' // opcional: para desarrollo local de Angular
+  ],
+  credentials: true,
+});
 
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
